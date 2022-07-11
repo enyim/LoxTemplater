@@ -63,7 +63,16 @@ static void RunGenerateVerb(GenerateOpts opts)
 
     if (!opts.DryRun)
     {
-        project.Document.Save(opts.OutputPath);
+        using var file = File.Create(opts.OutputPath);
+        using var xw = System.Xml.XmlWriter.Create(file, new()
+        {
+            Indent = true,
+            IndentChars = "\t",
+            NewLineHandling = System.Xml.NewLineHandling.None,
+            Encoding = System.Text.Encoding.UTF8,
+        });
+
+        project.Document.Save(xw);
     }
 }
 

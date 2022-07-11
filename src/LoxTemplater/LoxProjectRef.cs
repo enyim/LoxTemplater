@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Xml;
 using System.Xml.Linq;
 
 using Enyim.LoxTempl;
@@ -38,7 +39,11 @@ public class LoxProjectRef
 
     public static LoxProjectRef Load(string path)
     {
-        var doc = XDocument.Load(path);
+        using var stream = File.OpenRead(path);
+        using var reader = new XmlTextReader(stream);
+
+        var doc = XDocument.Load(reader, LoadOptions.PreserveWhitespace);
+
         if (doc.Root == null) throw new InvalidOperationException("Invalid project file, missing root node");
 
         return new LoxProjectRef(doc);
