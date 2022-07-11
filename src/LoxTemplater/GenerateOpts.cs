@@ -42,6 +42,9 @@ internal class GenerateOpts
     [Option("overwrite-pages", Required = false, HelpText = "If set, pages with the same name as the generated pages will be overwritten in the project file. Useful when reprocessing a project that contains both template and generated pages.")]
     public bool OverwritePages { get; set; }
 
+    [Option("delete-template", Required = false, HelpText = "If set, the template page will be removed from the output project.")]
+    public bool DeleteTemplate { get; set; }
+
     public void Validate()
     {
         if (!Rooms.Any()) throw new InvalidOperationException("At least a single room must be specified");

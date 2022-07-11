@@ -63,6 +63,8 @@ static void RunGenerateVerb(GenerateOpts opts)
 
     if (!opts.DryRun)
     {
+        if (opts.DeleteTemplate) template.Element?.Remove();
+
         using var file = File.Create(opts.OutputPath);
         using var xw = System.Xml.XmlWriter.Create(file, new()
         {
