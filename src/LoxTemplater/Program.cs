@@ -78,12 +78,12 @@ static void RunGenerateVerb(GenerateOpts opts)
 
 static void AssertUniqueIONames(ILookup<string, OwnedIORef> allIO)
 {
-    var fail = false;
+    //var fail = false;
 
     foreach (var room in allIO)
     {
         var invalids = from o in room
-                       group o by o.Port.Title into g
+                       group o by (o.Owner.Title, o.Port.Title) into g
                        select (name: g.Key, count: g.Count(), items: g) into p
                        where p.count > 1
                        select p;
@@ -93,12 +93,12 @@ static void AssertUniqueIONames(ILookup<string, OwnedIORef> allIO)
             foreach (var item in p.items)
             {
                 Log($"Duplicate input found in room {room.Key}: {p.name} - {item}");
-                fail = true;
+                //fail = true;
             }
         }
     }
 
-    if (fail) throw new InvalidOperationException("this bug");
+    //if (fail) throw new InvalidOperationException("this bug");
 }
 
 static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef project, ILookup<string, OwnedIORef> allIO, LoxPlace desiredPlace)
