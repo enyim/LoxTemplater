@@ -8,6 +8,7 @@ public class LoxHeatIRoomController2 : LoxVisualObject
     private static readonly (string XmlName, string UIName)[] OutputPorts = new[]
     {
         ("AQt", $"{T}t"),
+        ("AQhm",  "HCm"),
 
         ("AQh",  "H"),
         ("AQc",  "C"),
