@@ -104,8 +104,10 @@ static void AssertUniqueIONames(ILookup<string, OwnedIORef> allIO)
 static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef project, ILookup<string, OwnedIORef> allIO, LoxPlace desiredPlace)
 {
     var serdes = project.SerDes;
+    var clonePageName = String.IsNullOrEmpty(opts.PageNameTemplate)
+                            ? $"{opts.TemplateName} - {desiredPlace.Title}"
+                            : opts.PageNameTemplate.Replace("{Room}", desiredPlace.Title);
 
-    var clonePageName = $"{opts.TemplateName} - {desiredPlace.Title}";
     var existingPage = FindPageByTitle(project, clonePageName);
 
     if (existingPage != null)
