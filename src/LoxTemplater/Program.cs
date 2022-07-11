@@ -128,6 +128,9 @@ static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef proj
     var page = serdes.Load<LoxPage>(clone);
 
     page.Title = clonePageName;
+    page.Meta ??= new();
+    page.Meta.PlaceId = desiredPlace.Id;
+
     SetPlacesOfObjects(project, clone, desiredPlace.Id);
 
     var templateParams = (from memory in serdes.Select<LoxMemory>(clone)
