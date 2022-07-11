@@ -12,7 +12,7 @@ public abstract class LoxSensor : LoxConnectable, IAmSensor
         Proxy = proxy;
     }
 
-    public void ConnectTo(LoxConnector incoming)
+    public virtual void ConnectTo(LoxConnector incoming)
     {
         if (Proxy == null) throw new InvalidOperationException($"{this} must be connected to a {nameof(LoxInputRef)} first");
 

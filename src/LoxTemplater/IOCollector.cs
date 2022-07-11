@@ -46,6 +46,10 @@ internal class IOCollector
         yield return memoryFlags.Values.Select(m => new OwnedIORef(m, new BlockConnectorAsDataReceiver(m, m.Connectors.ByName("Input"))));
         yield return inputRefs;
 
+        var miniservers = project.SerDes.Select<LoxLive>(project.Root);
+
+        yield return miniservers.SelectMany(s => s.VirtualIns, MkIORef);
+
         // TODO rest of the devices we want to support
 
         static OwnedIORef MkIORef(LoxHaveMeta owner, LoxConnectable io) => new OwnedIORef(owner, io);
