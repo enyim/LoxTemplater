@@ -30,7 +30,7 @@ internal class GenerateOpts
     [Option('t', "template", Required = true, HelpText = "Name of the template page.")]
     public string TemplateName { get; set; }
 
-    [Option("page-name", Required = false, HelpText = "Template for na,ing the generated pages. Use {Room} for the room name.")]
+    [Option("page-name", Required = false, HelpText = "Template for naming the generated pages. Use {Room} for the room name. E.g. \"Heating - {Room}\"")]
     public string PageNameTemplate { get; set; }
 
     [Option('o', "output", Required = false, HelpText = "Target path for saving the project. If not specified a generated file name will be used.")]
