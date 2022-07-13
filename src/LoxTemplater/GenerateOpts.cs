@@ -57,7 +57,9 @@ internal class GenerateOpts
         }
         else
         {
-            if (!Directory.Exists(Path.GetDirectoryName(OutputPath))) throw new DirectoryNotFoundException("Invalid output path: " + OutputPath);
+            var outdir = Path.GetDirectoryName(OutputPath);
+
+            if (!String.IsNullOrEmpty(outdir) && !Directory.Exists(outdir)) throw new DirectoryNotFoundException("Invalid output path: " + OutputPath);
         }
     }
 }

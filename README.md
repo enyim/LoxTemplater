@@ -1,6 +1,6 @@
 # What's this?
 
-LoxTemplater ((**Lox**one**Templater**) is a tool to help you reusing complex logic for rooms in Loxone Config.
+LoxTemplater (**Lox**one**Templater**) is a tool to help you reusing complex logic for rooms in Loxone Config.
 
 # How?
 
@@ -33,8 +33,8 @@ Ensure that devices and their outputs are
 
 ![suffix 1](docs/templateparams.png)
 
-- The Green Memory Flags (Input References) will send data to Actuators, or inputs of Function Blocks
-- The Blue Memory Flags receive data from Sensors or outputs of Function Blocks
+- The green Memory Flags (Input References) will send data to Actuators, or inputs of Function Blocks
+- The blue Memory Flags receive data from Sensors or outputs of Function Blocks
 
 ### Naming
 

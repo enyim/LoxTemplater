@@ -46,6 +46,7 @@ static void RunGenerateVerb(GenerateOpts opts)
     opts.Validate();
 
     var project = LoxProjectRef.Load(opts.ProjectPath);
+    AssertValidRooms(project, opts.Rooms);
 
     var collector = new IOCollector(project);
     var allIO = collector.GroupIOsByPlace();
@@ -53,11 +54,11 @@ static void RunGenerateVerb(GenerateOpts opts)
 
     var template = FindPageByTitle(project, opts.TemplateName) ?? throw new InvalidOperationException($"Cannot find template page '{opts.TemplateName}'");
 
-    CheckInvalidPlaces(project, template);
+    AssertTemplateHasNoRooms(project, template);
 
     foreach (var roomName in opts.Rooms)
     {
-        var place = project.PlacesById.Values.First(p => OrdinalIgnoreCase.Equals(p.Title, roomName)) ?? throw new InvalidOperationException($"Invalid room {roomName}");
+        var place = project.PlacesById.Values.FirstOrDefault(p => OrdinalIgnoreCase.Equals(p.Title, roomName)) ?? throw new InvalidOperationException($"Invalid room {roomName}");
 
         GeneratePage(opts, template, project, allIO, place);
     }
@@ -76,6 +77,8 @@ static void RunGenerateVerb(GenerateOpts opts)
         });
 
         project.Document.Save(xw);
+
+        Log($"Saved output to {opts.OutputPath}");
     }
 }
 
@@ -287,10 +290,9 @@ static LoxPage? FindPageByTitle(LoxProjectRef project, string title)
     return project.Pages.FirstOrDefault(p => OrdinalIgnoreCase.Equals(p.Title, title));
 }
 
-static void CheckInvalidPlaces(LoxProjectRef project, LoxPage page)
+static void AssertTemplateHasNoRooms(LoxProjectRef project, LoxPage page)
 {
-    var naPlace = project.PlacesById.Values.First(p => p.First).Id;
-    var metas = project.SerDes.Select<LoxMeta>(page).Where(m => (m.PlaceId ?? naPlace) != naPlace);
+    var metas = project.SerDes.Select<LoxMeta>(page).Where(m => (m.PlaceId ?? project.EmptyPlace.Id) != project.EmptyPlace.Id);
 
     foreach (var invalid in metas)
     {
@@ -298,6 +300,22 @@ static void CheckInvalidPlaces(LoxProjectRef project, LoxPage page)
         Log($"Object {parent.Attribute("Title")} has unexpected location {project.PlacesById[invalid.PlaceId].Title}");
     }
 }
+
+static void AssertValidRooms(LoxProjectRef project, IEnumerable<string> rooms)
+{
+    var invalids = rooms.Where(r => project.PlacesById.Values.FirstOrDefault(p => OrdinalIgnoreCase.Equals(p.Title, r)) == null).ToList();
+
+    if (invalids.Count > 0)
+    {
+        foreach (var invalid in invalids)
+        {
+            Log($"Room '{invalid}' was not found in the project");
+        }
+
+        throw new InvalidOperationException("Invalid arguments");
+    }
+}
+
 
 static XElement ClonePage(LoxPage page)
 {
