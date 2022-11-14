@@ -12,7 +12,7 @@ public class LoxHeatIRoomController2 : LoxVisualObject
 
         ("AQh",  "H"),
         ("AQc",  "C"),
-        ("AQhc",  "HC"),
+        ("AQs",  "HC"),
 
         ("AQh1", "H1"),
         ("AQh2", "H2"),
