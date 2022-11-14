@@ -27,8 +27,11 @@ internal class GenerateOpts
     [Option('r', "rooms", Required = true, HelpText = "Which rooms to generate pages for. Use 'list rooms' to get the list of room names from the project.")]
     public IEnumerable<string> Rooms { get; set; }
 
-    [Option('t', "template", Required = true, HelpText = "Name of the template page.")]
+    [Option('p', "page", Required = true, HelpText = "Name of the template page.")]
     public string TemplateName { get; set; }
+
+    [Option('t', "template", Required = false, HelpText = "If specified the template page will be used from this project, not from the source. This requires that the source project is an actual version of the template project with the same rooms and objects.")]
+    public string TemplateProject { get; set; }
 
     [Option("page-name", Required = false, HelpText = "Template for naming the generated pages. Use {Room} for the room name. E.g. \"Heating - {Room}\"")]
     public string PageNameTemplate { get; set; }
@@ -49,6 +52,7 @@ internal class GenerateOpts
     {
         if (!Rooms.Any()) throw new InvalidOperationException("At least a single room must be specified");
         if (!File.Exists(ProjectPath)) throw new FileNotFoundException("Cannot find project file", ProjectPath);
+        if (!String.IsNullOrEmpty(TemplateProject) && !File.Exists(TemplateProject)) throw new FileNotFoundException("Cannot find template file", TemplateProject);
 
         if (String.IsNullOrEmpty(OutputPath))
         {

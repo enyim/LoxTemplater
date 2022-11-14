@@ -45,22 +45,26 @@ static void RunGenerateVerb(GenerateOpts opts)
 {
     opts.Validate();
 
-    var project = LoxProjectRef.Load(opts.ProjectPath);
-    AssertValidRooms(project, opts.Rooms);
+    // where the page will come from
+    var templateProject = LoxProjectRef.Load(String.IsNullOrEmpty(opts.TemplateProject) ? opts.ProjectPath : opts.TemplateProject);
+    // the project that will have the generated objects
+    var targetProject = LoxProjectRef.Load(opts.ProjectPath);
 
-    var collector = new IOCollector(project);
+    AssertValidRooms(targetProject, opts.Rooms);
+
+    var collector = new IOCollector(targetProject);
     var allIO = collector.GroupIOsByPlace();
     AssertUniqueIONames(allIO);
 
-    var template = FindPageByTitle(project, opts.TemplateName) ?? throw new InvalidOperationException($"Cannot find template page '{opts.TemplateName}'");
+    var template = FindPageByTitle(templateProject, opts.TemplateName) ?? throw new InvalidOperationException($"Cannot find template page '{opts.TemplateName}'");
 
-    AssertTemplateHasNoRooms(project, template);
+    AssertTemplateHasNoRooms(templateProject, template);
 
     foreach (var roomName in opts.Rooms)
     {
-        var place = project.PlacesById.Values.FirstOrDefault(p => OrdinalIgnoreCase.Equals(p.Title, roomName)) ?? throw new InvalidOperationException($"Invalid room {roomName}");
+        var place = targetProject.PlacesById.Values.FirstOrDefault(p => OrdinalIgnoreCase.Equals(p.Title, roomName)) ?? throw new InvalidOperationException($"Invalid room {roomName}");
 
-        GeneratePage(opts, template, project, allIO, place);
+        GeneratePage(opts, template, targetProject, allIO, place);
     }
 
     if (!opts.DryRun)
@@ -76,7 +80,7 @@ static void RunGenerateVerb(GenerateOpts opts)
             Encoding = System.Text.Encoding.UTF8,
         });
 
-        project.Document.Save(xw);
+        targetProject.Document.Save(xw);
 
         Log($"Saved output to {opts.OutputPath}");
     }
@@ -107,14 +111,14 @@ static void AssertUniqueIONames(ILookup<string, OwnedIORef> allIO)
     //if (fail) throw new InvalidOperationException("this bug");
 }
 
-static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef project, ILookup<string, OwnedIORef> allIO, LoxPlace desiredPlace)
+static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef targetProject, ILookup<string, OwnedIORef> allIO, LoxPlace desiredPlace)
 {
-    var serdes = project.SerDes;
+    var serdes = targetProject.SerDes;
     var clonePageName = String.IsNullOrEmpty(opts.PageNameTemplate)
                             ? $"{opts.TemplateName} - {desiredPlace.Title}"
                             : opts.PageNameTemplate.Replace("{Room}", desiredPlace.Title);
 
-    var existingPage = FindPageByTitle(project, clonePageName);
+    var existingPage = FindPageByTitle(targetProject, clonePageName);
 
     if (existingPage != null)
     {
@@ -128,14 +132,14 @@ static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef proj
         }
     }
 
-    var clone = ClonePage(template);
+    var clone = ClonePage(template, targetProject);
     var page = serdes.Load<LoxPage>(clone);
 
     page.Title = clonePageName;
     page.Meta ??= new();
     page.Meta.PlaceId = desiredPlace.Id;
 
-    SetPlacesOfObjects(project, clone, desiredPlace.Id);
+    SetPlacesOfObjects(targetProject, clone, desiredPlace.Id);
 
     var templateParams = (from memory in serdes.Select<LoxMemory>(clone)
                           select ParseMemoryFlagName(memory) into param
@@ -173,7 +177,7 @@ static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef proj
             {
                 var inputRef = new LoxInputRef(sensor)
                 {
-                    V = project.V,
+                    V = targetProject.V,
                     Color = "0,138,207"
                 };
 
@@ -206,7 +210,7 @@ static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef proj
             {
                 var outputRef = new LoxOutputRef(actuator)
                 {
-                    V = project.V,
+                    V = targetProject.V,
                     Color = "138,0,207"
                 };
 
@@ -265,7 +269,7 @@ static void GeneratePage(GenerateOpts opts, LoxPage template, LoxProjectRef proj
     {
         var text = new LoxText
         {
-            V = project.V,
+            V = targetProject.V,
             Title = "Note",
             Px = 0,
             Py = 16608,
@@ -316,18 +320,17 @@ static void AssertValidRooms(LoxProjectRef project, IEnumerable<string> rooms)
     }
 }
 
-
-static XElement ClonePage(LoxPage page)
+static XElement ClonePage(LoxPage page, LoxProjectRef targetProject)
 {
     ArgumentNullException.ThrowIfNull(page);
 
-    var template = ((IXmlBound)page).Element;
-    Debug.Assert(template != null);
+    var srcElement = ((IXmlBound)page).Element;
+    Debug.Assert(srcElement != null);
 
-    var clone = new XElement(template);
-    template.AddAfterSelf(clone);
+    var clone = new XElement(srcElement);
+    targetProject.PageContainer.Add(clone);
 
-    var idMap = (from c in template.DescendantsAndSelf()
+    var idMap = (from c in srcElement.DescendantsAndSelf()
                  select c.LoxId() into id
                  where !String.IsNullOrEmpty(id)
                  select id)

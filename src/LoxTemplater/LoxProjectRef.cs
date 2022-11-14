@@ -26,6 +26,7 @@ public class LoxProjectRef
 
     public XDocument Document { get; }
     public XElement Root => Document.Root!;
+    public XContainer PageContainer => Document.RequireContainer("Document", "Program");
 
     public LoxmlSerializer SerDes { get; }
 
